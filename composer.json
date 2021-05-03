@@ -1,0 +1,13 @@
+{
+    "name": "mudde/formgen4symfony",
+    "description": "Tools for symfony to use FormGen",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Olaf Mudde",
+            "email": "olaf.mudde@xs4all.nl"
+        }
+    ],
+    "require": {}
+}
