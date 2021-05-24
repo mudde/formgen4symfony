@@ -10,6 +10,7 @@
         }
     ],
     "require": {
+        "php": "8.0",
         "symfony/http-kernel": "^5.2",
         "symfony/orm-pack": "^2.1",
         "symfony/console": "^5.2"
