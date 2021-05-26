@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Command;
+namespace Mudde\Formgen4Symfony\Command;
 
 
 use Doctrine\ORM\EntityManagerInterface;

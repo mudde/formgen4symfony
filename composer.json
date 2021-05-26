@@ -9,6 +9,9 @@
             "email": "olaf.mudde@xs4all.nl"
         }
     ],
+    "autoload": {
+        "psr-4": { "Mudde\\Formgen4Symfony\\": "src/" }
+    },
     "require": {
         "php": ">=8.0.0",
         "symfony/http-kernel": "^5.2",
