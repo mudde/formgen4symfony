@@ -4,6 +4,7 @@ namespace Mudde\Formgen4Symfony\Command;
 
 
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
@@ -40,7 +41,7 @@ class ClearDbCommand extends Command
             $this->entityManager->flush();
 
             $io->success('The default dataset is created!');
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $io->error("ERROR! {$exception->getMessage()}");
         }
         return Command::SUCCESS;

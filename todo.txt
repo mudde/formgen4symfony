@@ -7,3 +7,5 @@
 - FormgenHelper - entity to json converter
 - More tests!
 - Readme update
+- Is an entity repositoryClass an endpoint for the API?
+-
