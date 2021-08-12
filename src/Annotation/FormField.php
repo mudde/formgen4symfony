@@ -13,8 +13,8 @@ class FormField
     public function __construct(
         string $id,
         string $label,
-        array $validators = [],
-        array $attributes = [],
+        array  $validators = [],
+        array  $attributes = [],
     )
     {
         $this->config = $attributes;
@@ -27,4 +27,5 @@ class FormField
     {
         return $this->config;
     }
+
 }

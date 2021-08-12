@@ -8,4 +8,6 @@
 - More tests!
 - Readme update
 - Is an entity repositoryClass an endpoint for the API?
+- Input Abstract __get; __set and validation (if all fields are filled!)
+- Script for Input classes, so they can be created automatically
 -
