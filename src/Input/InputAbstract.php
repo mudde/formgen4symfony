@@ -26,13 +26,12 @@ abstract class InputAbstract
         return count($this->inValidFields()) > 0;
     }
 
-    public function inValidFields():array
+    public function inValidFields(): array
     {
         return array_filter($this->fields(), function ($field) {
             return !isset($this->data[$field]);
         });
     }
-
 
     public function fields(): array
     {
@@ -49,13 +48,18 @@ abstract class InputAbstract
             'hidden',
             'require',
             'multilingual',
-            'handlerBuilders',
-            'handlerValidation',
+            'builders',
+            'validation',
             'form',
             'coreIds',
             'extraJs',
             'rules'
         ];
+    }
+
+    public function getData(): array
+    {
+        return $this->data;
     }
 
 }

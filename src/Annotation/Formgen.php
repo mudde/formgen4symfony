@@ -15,8 +15,16 @@ class Formgen
         array $attributes = [],
     )
     {
-        $this->config = $attributes;
-        $this->config['id'] = $id;
+        $config= [];
+        $config['fields'] = [];
+        $config['buttons'] = [];
+        $config['languages'] = ['en'];
+        $config['builders'] = [];
+        $config['data'] = null;
+
+        $attributes['id'] = $id;
+
+        $this->config = array_merge($config, $attributes);
     }
 
     public function getConfig(): array
