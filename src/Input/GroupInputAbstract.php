@@ -6,7 +6,8 @@ class GroupInputAbstract extends InputAbstract
 {
     public function fields(): array
     {
-        return ['data',
+        return [
+            'data',
             'currentData',
             ...parent::fields()
         ];

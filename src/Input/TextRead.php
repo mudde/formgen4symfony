@@ -2,13 +2,17 @@
 
 namespace Mudde\Formgen4Symfony\Input;
 
-class Combobox extends InputAbstract
+class TextRead extends InputAbstract
 {
     public function fields(): array
     {
         return [
+            'mask',
+            'format',
+            'prefix',
+            'suffix',
             'multiple',
-            'data',
+            'spellcheck',
             ...parent::fields()
         ];
     }

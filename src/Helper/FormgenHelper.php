@@ -1,6 +1,6 @@
 <?php
 
-namespace Mudde\Formgen4Symfony\Service;
+namespace Mudde\Formgen4Symfony\Helper;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\Mapping\Column;
@@ -11,10 +11,20 @@ use Mudde\Formgen4Symfony\Exception\FieldException;
 use Mudde\Formgen4Symfony\Input\InputAbstract;
 use ReflectionClass;
 
-class FormgenService
+class FormgenHelper
 {
 
-    public function toJson($entity): array
+    public static array $outputExtra = [
+        'buttons' =>  [[
+            "_type" => "Submit",
+            "label" => "Save"
+        ]],
+        'builders' => [
+            "TabsBuilder"
+        ]
+    ];
+
+    public static function toJson($entity): array
     {
         $reflection = new ReflectionClass($entity);
         $attribute = $reflection->getAttributes(Formgen::class)[0] ?? null;
@@ -34,39 +44,41 @@ class FormgenService
             if ($ignoreAttribute)
                 continue;
 
-            $formAnnotationMapping = $this->getFieldConfig($property);
+            $formAnnotationMapping = self::getFieldConfig($property);
             $type = $formAnnotationMapping['_type'];
-            $classname = substr(InputAbstract::class, 0, -13) . ucfirst($type);
-            $inputObject = new $classname();
+            $className = substr(InputAbstract::class, 0, -13) . ucfirst($type);
+            $inputObject = new $className();
 
             foreach ($inputObject->fields() as $field) {
                 $inputObject->$field = $formAnnotationMapping[$field] ?? null;
             }
 
-            $inputObject->valid() || throw new FieldException(`Object with id ${$inputObject->id} is not valid!`);
+            $inputObject->valid() || throw new FieldException(`Object with id ` . $inputObject->id . ` is not valid!`);
 
             $fields[] = $inputObject->getData();
         }
 
         $output['fields'] = array_merge($fields, $output['fields']);
+        $output = array_merge($output, self::$outputExtra);
 
         return $output;
     }
 
-    private function getFieldConfig($property): array
+    private static function getFieldConfig(\ReflectionProperty $property): array
     {
         $annotationReader = new AnnotationReader();
         $columnMapping = array_values(array_filter($annotationReader->getPropertyAnnotations($property), function ($item) {
             return $item instanceof Column;
         }));
+
         $columnMapping = array_merge(['_type' => 'Text', 'unique' => false, 'nullable' => false], $columnMapping ?? []);
         $attributes = $property->getAttributes(FormField::class);
-        $attribute = count($attributes) > 0 ? $attributes[0]->newInstance()->getConfig() : [];
+        $attribute = count($attributes) ? $attributes[0]->newInstance()->getConfig() : [];
 
         return array_merge(
             [
                 'id' => $property->getName(),
-                '_type' => $formAnnotationMapping['_type'] ?? $formAnnotationMapping['_type'] ?? $columnMapping['_type'],
+                '_type' => $attribute['_type'] ?? $columnMapping['_type'],
                 'input' => true,
                 'label' => 'No label :(',
                 'help' => '',
@@ -88,7 +100,5 @@ class FormgenService
             ],
             $attribute
         );
-
     }
-
 }
