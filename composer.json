@@ -12,19 +12,8 @@
     "autoload": {
         "psr-4": { "Mudde\\Formgen4Symfony\\": "src" }
     },
-    "repositories": [
-        {
-            "type": "git",
-            "url":  "git@github.com:mudde/formgen.git"
-        },
-        {
-            "type": "git",
-            "url":  "git@github.com:mudde/core.git"
-        }
-    ],
     "require": {
         "php": ">=8.0.0",
-        "mudde/formgen": "dev-main",
         "symfony/http-kernel": "^5.2",
         "symfony/orm-pack": "^2.1",
         "symfony/console": "^5.2",
@@ -32,5 +21,13 @@
     },
     "require-dev": {
         "vimeo/psalm": "^4.19"
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "npm install"
+        ],
+        "post-update-cmd": [
+            "npm update"
+        ]
     }
 }

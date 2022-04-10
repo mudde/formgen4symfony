@@ -7,8 +7,10 @@ class Combobox extends InputAbstract
     public function fields(): array
     {
         return [
-            'multiple',
-            'data',
+            'multiple'=>false,
+            'data' => [
+                'type' => 'array',
+            ],
             ...parent::fields()
         ];
     }
