@@ -2,6 +2,7 @@
 
 namespace Mudde\Formgen4Symfony\Helper;
 
+use ArrayObject;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\Mapping\Column;
 use Mudde\Formgen4Symfony\Annotation\FormField;
@@ -27,22 +28,21 @@ class FormgenHelper
     public static function toJson($entity): array
     {
         $reflection = new ReflectionClass($entity);
-        $attribute = $reflection->getAttributes(Formgen::class)[0] ?? null;
+        $formGenAnnotations = $reflection->getAttributes(Formgen::class)[0] ?? null;
         $output = [];
         $fields = [];
 
         //  Form properties
-        if ($attribute) {
-            $instance = $attribute->newInstance();
+        if ($formGenAnnotations) {
+            $instance = $formGenAnnotations->newInstance();
             $config = $instance->getConfig();
-            $output = array_merge($config, $output);
+            $output = [...$config, ...$output];
         }
 
         //  Field properties
         foreach ($reflection->getProperties() as $property) {
-            $ignoreAttribute = $property->getAttributes(FormIgnore::class)[0] ?? null;
-            if ($ignoreAttribute)
-                continue;
+            $ignoreAnnotations = $property->getAttributes(FormIgnore::class)[0] ?? null;
+            if ($ignoreAnnotations) continue;
 
             $formAnnotationMapping = self::getFieldConfig($property);
             $type = $formAnnotationMapping['_type'];
@@ -58,8 +58,8 @@ class FormgenHelper
             $fields[] = $inputObject->getData();
         }
 
-        $output['fields'] = array_merge($fields, $output['fields']);
-        $output = array_merge($output, self::$outputExtra);
+        $output['fields'] = [...$fields, ...$output['fields'] ?? []];
+        $output = [...$output, ...self::$outputExtra];
 
         return $output;
     }
@@ -67,22 +67,25 @@ class FormgenHelper
     private static function getFieldConfig(\ReflectionProperty $property): array
     {
         $annotationReader = new AnnotationReader();
-        $columnMapping = array_values(array_filter($annotationReader->getPropertyAnnotations($property), function ($item) {
+        $doctrineColumnAnnotations = new ArrayObject(array_values(array_filter($annotationReader->getPropertyAnnotations($property), function ($item) {
             return $item instanceof Column;
-        }));
+        })));
 
-        $columnMapping = array_merge(['_type' => 'Text', 'unique' => false, 'nullable' => false], $columnMapping ?? []);
-        $attributes = $property->getAttributes(FormField::class);
-        $attribute = count($attributes) ? $attributes[0]->newInstance()->getConfig() : [];
+        $doctrineColumnAnnotations['_type'] = $doctrineColumnAnnotations['_type'] ?? 'Text';
+        $doctrineColumnAnnotations['unique'] = $doctrineColumnAnnotations['unique'] ?? false;
+        $doctrineColumnAnnotations['nullable'] = $doctrineColumnAnnotations['nullable'] ?? false;
 
-        return array_merge(
-            [
+        $formFieldAnnotations = $property->getAttributes(FormField::class);
+        $formGenAnnotations = count($formFieldAnnotations) ? $formFieldAnnotations[0]->newInstance()->getConfig() : [];
+
+        return [
+            ...[
                 'id' => $property->getName(),
-                '_type' => $attribute['_type'] ?? $columnMapping['_type'],
+                '_type' => $formGenAnnotations['_type'] ?? $doctrineColumnAnnotations['_type'],
                 'input' => true,
                 'label' => 'No label :(',
                 'help' => '',
-                'unique' => $columnMapping['unique'],
+                'unique' => $doctrineColumnAnnotations['unique'],
                 'validations' => [],
                 'builders' => ['BootstrapBuilder'],
                 'autofocus' => false,
@@ -91,14 +94,14 @@ class FormgenHelper
                 'panel' => null,
                 'mask' => '',
                 'format' => '',
-                'require' => !$columnMapping['nullable'],
+                'require' => !$doctrineColumnAnnotations['nullable'],
                 'placeholder' => '',
                 'prefix' => '',
                 'suffix' => '',
                 'multiple' => false,
                 'spellcheck' => false
             ],
-            $attribute
-        );
+            ...$formGenAnnotations
+        ];
     }
 }
