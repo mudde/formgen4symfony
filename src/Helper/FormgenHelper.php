@@ -14,7 +14,6 @@ use ReflectionClass;
 
 class FormgenHelper
 {
-
     public static array $outputExtra = [
         'buttons' =>  [[
             "_type" => "Submit",
@@ -28,13 +27,13 @@ class FormgenHelper
     public static function toJson($entity): array
     {
         $reflection = new ReflectionClass($entity);
-        $formGenAnnotations = $reflection->getAttributes(Formgen::class)[0] ?? null;
+        $formAnnotations = $reflection->getAttributes(Formgen::class)[0] ?? null;
         $output = [];
         $fields = [];
 
         //  Form properties
-        if ($formGenAnnotations) {
-            $instance = $formGenAnnotations->newInstance();
+        if ($formAnnotations) {
+            $instance = $formAnnotations->newInstance();
             $config = $instance->getConfig();
             $output = [...$config, ...$output];
         }
@@ -44,13 +43,13 @@ class FormgenHelper
             $ignoreAnnotations = $property->getAttributes(FormIgnore::class)[0] ?? null;
             if ($ignoreAnnotations) continue;
 
-            $formAnnotationMapping = self::getFieldConfig($property);
-            $type = $formAnnotationMapping['_type'];
-            $className = substr(InputAbstract::class, 0, -13) . ucfirst($type);
+            $formAnnotation = self::getFieldConfig($property);
+            $type = $formAnnotation['_type'];
+            $className = substr(InputAbstract::class, -13) . ucfirst($type);
             $inputObject = new $className();
 
             foreach ($inputObject->fields() as $field) {
-                $inputObject->$field = $formAnnotationMapping[$field] ?? null;
+                $inputObject->$field = $formAnnotation[$field] ?? null;
             }
 
             $inputObject->valid() || throw new FieldException(`Object with id ` . $inputObject->id . ` is not valid!`);
@@ -64,28 +63,42 @@ class FormgenHelper
         return $output;
     }
 
-    private static function getFieldConfig(\ReflectionProperty $property): array
+    private static function getDoctrineAnnotations(\ReflectionProperty $property): ArrayObject
     {
         $annotationReader = new AnnotationReader();
-        $doctrineColumnAnnotations = new ArrayObject(array_values(array_filter($annotationReader->getPropertyAnnotations($property), function ($item) {
-            return $item instanceof Column;
-        })));
+        $output = new ArrayObject(
+            array_values(
+                array_filter(
+                    $annotationReader->getPropertyAnnotations($property),
+                    function ($item) {
+                        return $item instanceof Column;
+                    }
+                )
+            )
+        );
 
-        $doctrineColumnAnnotations['_type'] = $doctrineColumnAnnotations['_type'] ?? 'Text';
-        $doctrineColumnAnnotations['unique'] = $doctrineColumnAnnotations['unique'] ?? false;
-        $doctrineColumnAnnotations['nullable'] = $doctrineColumnAnnotations['nullable'] ?? false;
+        $output['_type'] = $output['_type'] ?? 'Text';
+        $output['unique'] = $output['unique'] ?? false;
+        $output['nullable'] = $output['nullable'] ?? false;
 
-        $formFieldAnnotations = $property->getAttributes(FormField::class);
-        $formGenAnnotations = count($formFieldAnnotations) ? $formFieldAnnotations[0]->newInstance()->getConfig() : [];
+        return $output;
+    }
+
+    private static function getFieldConfig(\ReflectionProperty $property): array
+    {
+        $doctrineAnnotations = self::getDoctrineAnnotations($property);
+        $fieldAnnotations = $property->getAttributes(FormField::class);
+        $fieldInstance = $fieldAnnotations[0] ?? null;
+        $fieldConfig = $fieldInstance ? $fieldInstance->newInstance()->getConfig() : [];
 
         return [
             ...[
                 'id' => $property->getName(),
-                '_type' => $formGenAnnotations['_type'] ?? $doctrineColumnAnnotations['_type'],
+                '_type' => $formGenAnnotations['_type'] ?? $doctrineAnnotations['_type'],
                 'input' => true,
                 'label' => 'No label :(',
                 'help' => '',
-                'unique' => $doctrineColumnAnnotations['unique'],
+                'unique' => $doctrineAnnotations['unique'],
                 'validations' => [],
                 'builders' => ['BootstrapBuilder'],
                 'autofocus' => false,
@@ -94,14 +107,14 @@ class FormgenHelper
                 'panel' => null,
                 'mask' => '',
                 'format' => '',
-                'require' => !$doctrineColumnAnnotations['nullable'],
+                'require' => !$doctrineAnnotations['nullable'],
                 'placeholder' => '',
                 'prefix' => '',
                 'suffix' => '',
                 'multiple' => false,
                 'spellcheck' => false
             ],
-            ...$formGenAnnotations
+            ...$fieldConfig
         ];
     }
 }
