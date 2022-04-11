@@ -18,6 +18,5 @@
   },
   "homepage": "https://github.com/mudde/formgen4symfony#readme",
   "dependencies": {
-    "@mudde/formgen": "github:mudde/formgen"
   }
 }
