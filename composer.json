@@ -3,14 +3,14 @@
     "description": "Tools for symfony to use FormGen",
     "type": "library",
     "license": "MIT",
-    "authors": [
-        {
-            "name": "Olaf Mudde",
-            "email": "olaf.mudde@xs4all.nl"
-        }
-    ],
+    "authors": [{
+        "name": "Olaf Mudde",
+        "email": "olaf.mudde@xs4all.nl"
+    }],
     "autoload": {
-        "psr-4": { "Mudde\\Formgen4Symfony\\": "src" }
+        "psr-4": {
+            "Mudde\\Formgen4Symfony\\": "src"
+        }
     },
     "require": {
         "php": ">=8.0.0",
@@ -21,6 +21,11 @@
     },
     "require-dev": {
         "vimeo/psalm": "^4.19"
+    },
+    "extra": {
+        "npm": {
+            "@mudde/formgen": "github:mudde/formgen"
+        }
     },
     "scripts": {
         "post-install-cmd": [
