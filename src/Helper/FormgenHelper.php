@@ -35,7 +35,7 @@ class FormgenHelper
         if ($formAnnotations) {
             $instance = $formAnnotations->newInstance();
             $config = $instance->getConfig();
-            $output = [...$config, ...$output];
+            $output = $config;
         }
 
         //  Field properties
